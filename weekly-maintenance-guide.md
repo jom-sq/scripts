@@ -18,7 +18,6 @@ Create `~/bin/weekly-maintenance.sh`:
 mkdir -p ~/bin
 cat > ~/bin/weekly-maintenance.sh << 'EOF'
 #!/bin/bash
-set -e
 
 echo "========================================"
 echo "Started: $(date)"
@@ -26,11 +25,11 @@ echo "========================================"
 
 echo ""
 echo ">>> brew update"
-/opt/homebrew/bin/brew update
+/opt/homebrew/bin/brew update || echo "⚠️  brew update had issues, continuing..."
 
 echo ""
 echo ">>> brew upgrade"
-/opt/homebrew/bin/brew upgrade
+/opt/homebrew/bin/brew upgrade || echo "⚠️  brew upgrade had issues, continuing..."
 
 echo ""
 echo ">>> topsoil compost"
