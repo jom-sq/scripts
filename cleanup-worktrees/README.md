@@ -4,7 +4,7 @@ Automatically removes git worktrees that haven't been modified in X days.
 
 ## How It Works
 
-The script scans `~/Development/worktrees/<repo>/` for worktree directories. If no files (excluding `.git/`) have been modified within the threshold period, the worktree is removed and `git worktree prune` is run on the main repo.
+The script scans `~/Development/*-worktrees/` for worktree directories (e.g., `square-web-worktrees/`, `dashboard-worktrees/`). If no files (excluding `.git/`) have been modified within the threshold period, the worktree is removed and `git worktree prune` is run on the main repo.
 
 ## Setup
 
@@ -86,8 +86,10 @@ cleanup-worktrees.sh 7
 ```
 ~/Development/
 ├── my-repo/                      # Main clone
-└── worktrees/
-    └── my-repo/
-        ├── feature-a/            # Worktree (will be cleaned if stale)
-        └── feature-b/            # Worktree
+├── my-repo-worktrees/            # Worktrees for my-repo
+│   ├── feature-a/                # Worktree (will be cleaned if stale)
+│   └── feature-b/                # Worktree
+├── other-repo/                   # Another main clone
+└── other-repo-worktrees/         # Worktrees for other-repo
+    └── bugfix-login/             # Worktree
 ```

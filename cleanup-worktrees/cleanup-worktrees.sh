@@ -13,7 +13,7 @@ DAYS="${1:-4}"
 DRY_RUN=false
 [[ "${2:-}" == "--dry-run" ]] && DRY_RUN=true
 
-WORKTREES_BASE="$HOME/Development/worktrees"
+DEV_BASE="$HOME/Development"
 LOG_FILE="$HOME/.local/logs/worktree-cleanup.log"
 
 mkdir -p "$(dirname "$LOG_FILE")"
@@ -24,25 +24,29 @@ log() {
 
 log "Starting worktree cleanup (threshold: $DAYS days, dry-run: $DRY_RUN)"
 
-# Find all worktree directories (one level deep under each repo)
-for repo_dir in "$WORKTREES_BASE"/*/; do
-  repo_name=$(basename "$repo_dir")
-  main_repo="$HOME/Development/$repo_name"
-  
+# Find all *-worktrees directories (e.g., square-web-worktrees, dashboard-worktrees)
+for worktrees_dir in "$DEV_BASE"/*-worktrees/; do
+  [[ ! -d "$worktrees_dir" ]] && continue
+
+  # Derive main repo name: square-web-worktrees -> square-web
+  dir_name=$(basename "$worktrees_dir")
+  repo_name="${dir_name%-worktrees}"
+  main_repo="$DEV_BASE/$repo_name"
+
   # Skip if main repo doesn't exist
   [[ ! -d "$main_repo/.git" ]] && continue
-  
-  for worktree in "$repo_dir"/*/; do
+
+  for worktree in "$worktrees_dir"/*/; do
     [[ ! -d "$worktree" ]] && continue
-    
+
     worktree_name=$(basename "$worktree")
-    
+
     # Check last modification time (most recent file change in the worktree)
     last_modified=$(find "$worktree" -type f -not -path '*/.git/*' -mtime -"$DAYS" 2>/dev/null | head -1)
-    
+
     if [[ -z "$last_modified" ]]; then
       log "OLD: $repo_name/$worktree_name (no changes in $DAYS days)"
-      
+
       if [[ "$DRY_RUN" == "false" ]]; then
         rm -rf "$worktree"
         log "  -> Removed"
@@ -53,7 +57,7 @@ for repo_dir in "$WORKTREES_BASE"/*/; do
       log "KEEP: $repo_name/$worktree_name (recently modified)"
     fi
   done
-  
+
   # Prune the main repo
   if [[ "$DRY_RUN" == "false" ]]; then
     (cd "$main_repo" && git worktree prune 2>/dev/null) || true
